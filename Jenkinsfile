@@ -33,7 +33,7 @@ pipeline {
                 bat """
                 docker stop %CONTAINER_NAME% || echo "Container not running."
                 docker rm %CONTAINER_NAME% || echo "Container already removed."
-                docker run -d --name %CONTAINER_NAME% -p %EXPOSE_PORT%:%APP_PORT% %DOCKER_IMAGE% --spring.profiles.active=docker-dev
+                docker run -d --name %CONTAINER_NAME% -p %EXPOSE_PORT%:%APP_PORT% %DOCKER_IMAGE% "--spring.profiles.active=docker-dev"
                 """
             }
         }
