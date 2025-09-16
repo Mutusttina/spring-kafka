@@ -19,7 +19,6 @@ pipeline {
         stage('Build JAR') {
             steps {
                 bat '.\\mvnw.cmd -B clean package -DskipTests'
-                // Or: bat 'mvn -B clean package -DskipTests'
             }
         }
 
@@ -32,10 +31,8 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 bat """
-                docker ps -q --filter "name=%CONTAINER_NAME%" | findstr . >nul && (
-                    docker stop %CONTAINER_NAME%
-                    docker rm %CONTAINER_NAME%
-                )
+                docker stop %CONTAINER_NAME% || echo "Container not running."
+                docker rm %CONTAINER_NAME% || echo "Container already removed."
                 docker run -d --name %CONTAINER_NAME% -p %EXPOSE_PORT%:%APP_PORT% %DOCKER_IMAGE% --spring.profiles.active=docker-dev
                 """
             }
