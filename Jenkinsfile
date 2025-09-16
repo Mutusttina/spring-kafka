@@ -18,25 +18,25 @@ pipeline {
 
         stage('Build JAR') {
             steps {
-                sh './mvnw -B clean package -DskipTests'
-                // If you don't use mvnw, replace with: sh 'mvn -B clean package -DskipTests'
+                bat '.\\mvnw.cmd -B clean package -DskipTests'
+                // Or: bat 'mvn -B clean package -DskipTests'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${DOCKER_IMAGE} ."
+                bat "docker build -t %DOCKER_IMAGE% ."
             }
         }
 
         stage('Deploy Container') {
             steps {
-                sh """
-                    # Stop and remove old container if running
-                    docker ps -q --filter name=${CONTAINER_NAME} | grep -q . && docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME} || true
-
-                    # Run new container
-                    docker run -d --name ${CONTAINER_NAME} -p ${EXPOSE_PORT}:${APP_PORT} ${DOCKER_IMAGE} --spring.profiles.active=docker-dev
+                bat """
+                docker ps -q --filter "name=%CONTAINER_NAME%" | findstr . >nul && (
+                    docker stop %CONTAINER_NAME%
+                    docker rm %CONTAINER_NAME%
+                )
+                docker run -d --name %CONTAINER_NAME% -p %EXPOSE_PORT%:%APP_PORT% %DOCKER_IMAGE% --spring.profiles.active=docker-dev
                 """
             }
         }
@@ -44,7 +44,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build & deployment successful! Access app at http://localhost:8080/"
+            echo "✅ Build & deployment successful! Access app at http://localhost:${EXPOSE_PORT}/"
         }
         failure {
             echo "❌ Build or deployment failed. Check logs."
